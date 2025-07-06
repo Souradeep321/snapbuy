@@ -12,16 +12,19 @@ dotenv.config({
 const app = express();
 const port = process.env.PORT || 4000;
 
-// CORS
-app.use(cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true
-}))
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    credentials: true,             
+    allowedHeaders: ['Content-Type','Authorization','X-Requested-With']
+  })
+);
 
 // common middleware
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+
 // app.use(express.static("public"))
 
 // import routes 
@@ -43,6 +46,22 @@ app.use("/api/v1/order", orderRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/coupons", couponRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("Error middleware caught:", err);
+
+    const statusCode = err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(statusCode).json({
+        success: false,
+        message,
+        errors: err.errors || [],
+        stack: process.env.NODE_ENV === "development" ? err.stack : undefined
+    });
+});
+
 
 
 connectDB().

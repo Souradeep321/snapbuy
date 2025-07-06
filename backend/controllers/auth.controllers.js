@@ -25,16 +25,17 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const setCookies = (res, accessToken, refreshToken) => {
+    // authController.js (setCookies)
     res.cookie("accessToken", accessToken, {
-        httpOnly: true, // prevent xss
-        sameSite: "strict",
+        httpOnly: true,
+        sameSite: "lax", // More flexible than strict
         secure: process.env.NODE_ENV === "production",
-        maxAge: 15 * 60 * 1000
+        maxAge:  60 * 1000
     });
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production", // should be false for localhost
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 }
@@ -107,52 +108,89 @@ const logout = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Logout successful"));
 });
 
+// const refreshAccessToken = asyncHandler(async (req, res) => {
+//     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+//     if (!incomingRefreshToken) {
+//         throw new ApiError(401, "Refresh token is required")
+//     }
+
+//     try {
+//         const decodedToken = jwt.verify(
+//             incomingRefreshToken,
+//             process.env.REFRESH_TOKEN_SECRET,
+//         );
+//         const user = await User.findById(decodedToken?._id)
+
+//         if (!user) {
+//             throw new ApiError(401, "Invalid refresh token")
+//         }
+
+//         if (incomingRefreshToken !== user?.refreshToken) {
+//             throw new ApiError(401, "Invalid refresh token")
+//         }
+
+//         const options = {
+//             httpOnly: true,
+//             sameSite: "strict",
+//             secure: process.env.NODE_ENV === "production",
+//         }
+
+//         const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id)
+
+//         return res
+//             .status(200)
+//             .cookie("accessToken", accessToken, options)
+//             .cookie("refreshToken", newRefreshToken, options)
+//             .json(new ApiResponse(
+//                 200,
+//                 {
+//                     accessToken,
+//                     refreshToken: newRefreshToken
+//                 },
+//                 "Access token generated successfully"
+//             ));
+//     } catch (error) {
+//         throw new ApiError(500, "Something went wrong while refreshing the access token")
+//     }
+// })
+
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
     if (!incomingRefreshToken) {
-        throw new ApiError(401, "Refresh token is required")
+        throw new ApiError(401, "Unauthorized request");
     }
 
     try {
         const decodedToken = jwt.verify(
             incomingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET,
+            process.env.REFRESH_TOKEN_SECRET
         );
-        const user = await User.findById(decodedToken?._id)
 
-        if (!user) {
-            throw new ApiError(401, "Invalid refresh token")
-        }
+        const user = await User.findById(decodedToken?._id);
+        if (!user) throw new ApiError(401, "Invalid refresh token");
 
+        // Token rotation - detect reuse
         if (incomingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Invalid refresh token")
+            user.refreshToken = undefined;
+            await user.save({ validateBeforeSave: false });
+            throw new ApiError(401, "Refresh token was reused");
         }
 
-        const options = {
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "production",
-        }
+        const { accessToken, refreshToken: newRefreshToken } =
+            await generateAccessAndRefreshToken(user._id);
 
-        const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id)
+        setCookies(res, accessToken, newRefreshToken);
 
-        return res
-            .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
-            .json(new ApiResponse(
-                200,
-                {
-                    accessToken,
-                    refreshToken: newRefreshToken
-                },
-                "Access token generated successfully"
-            ));
+        res.status(200).json(
+            new ApiResponse(200, { accessToken }, "Access token refreshed")
+        );
     } catch (error) {
-        throw new ApiError(500, "Something went wrong while refreshing the access token")
+        throw new ApiError(401, error?.message || "Invalid refresh token");
     }
-})
+});
+
 
 const getProfile = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, req.user, "Profile fetched successfully"));
@@ -177,30 +215,30 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 
 const avatarUpload = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
-  if (!avatarLocalPath) throw new ApiError(400, "Please upload an avatar image");
+    const avatarLocalPath = req.file?.path;
+    if (!avatarLocalPath) throw new ApiError(400, "Please upload an avatar image");
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if (!avatar?.url || !avatar?.public_id)
-    throw new ApiError(500, "Failed to upload avatar image");
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    if (!avatar?.url || !avatar?.public_id)
+        throw new ApiError(500, "Failed to upload avatar image");
 
-  const user = await User.findById(req.user?._id);
-  if (!user) throw new ApiError(404, "User not found");
+    const user = await User.findById(req.user?._id);
+    if (!user) throw new ApiError(404, "User not found");
 
-  // Delete old image from Cloudinary if exists
-  if (user.avatar?.public_id) {
-    await deleteFromCloudinary(user.avatar.public_id);
-  }
+    // Delete old image from Cloudinary if exists
+    if (user.avatar?.public_id) {
+        await deleteFromCloudinary(user.avatar.public_id);
+    }
 
-  user.avatar = {
-    url: avatar.url,
-    public_id: avatar.public_id,
-  };
-  await user.save({ validateBeforeSave: false });
+    user.avatar = {
+        url: avatar.url,
+        public_id: avatar.public_id,
+    };
+    await user.save({ validateBeforeSave: false });
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, user, "Avatar uploaded successfully"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "Avatar uploaded successfully"));
 });
 
 export {
