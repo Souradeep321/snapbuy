@@ -37,9 +37,21 @@ const deleteNotification = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, null, "Notification deleted successfully"));
 });
 
+const deleteAllNotification = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const notification = await Notification.find({ recipient: userId });
+    if (notification.length === 0) {
+        throw new ApiError(404, "No notifications found");
+    }
+    // Delete all notifications for the user
+    const result = await Notification.deleteMany({ recipient: userId });
+   
+    return res.status(200).json(new ApiResponse(200, result, "All notifications deleted successfully"));
+});
 
 export {
     getNotifications,
     markAsRead,
-    deleteNotification
+    deleteNotification,
+    deleteAllNotification
 }

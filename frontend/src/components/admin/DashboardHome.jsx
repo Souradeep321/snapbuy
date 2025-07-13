@@ -8,9 +8,9 @@ import {
   Users
 } from 'react-feather';
 import SalesChart from './SalesChart';
-import Loader from '../Loader';
+import Loader from '../common/Loader';
 import { motion } from 'framer-motion';
-import { useGetAnalyticsQuery } from '../../../store/analyticsApi';
+import { useGetAnalyticsQuery } from '../../store/analyticsApi';
 
 const DashboardHome = () => {
    const { data, isLoading } = useGetAnalyticsQuery();

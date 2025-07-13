@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ReloadIcon, EyeOpenIcon, EyeClosedIcon } from "@radix-ui/react-icons";
-import { registerUser } from "../../store/userReducer"; // Make sure this matches your export
+import { registerUser } from "../../store/userReducer";
 import { Link } from 'react-router-dom';
 
 const RegisterForm = () => {
@@ -15,10 +15,10 @@ const RegisterForm = () => {
   const { isLoading, error } = useSelector((state) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const { 
-    register, 
-    handleSubmit, 
+
+  const {
+    register,
+    handleSubmit,
     formState: { errors },
     watch,
     reset,
@@ -32,7 +32,6 @@ const RegisterForm = () => {
   });
 
   const onSubmit = (data) => {
-    // Only send required fields to backend
     const { username, email, password } = data;
     dispatch(registerUser({ username, email, password }));
     reset();
@@ -48,27 +47,27 @@ const RegisterForm = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex justify-center items-center min-h-screen"
+      className="flex justify-center items-center min-h-screen px-4"
     >
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md sm:max-w-lg shadow-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Create an Account</CardTitle>
-          <CardDescription>Join our community today</CardDescription>
+          <CardTitle className="text-2xl text-center">Create an Account</CardTitle>
+          <CardDescription className="text-center">Join our community today</CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              {/* Username Field */}
+              {/* Username */}
               <div>
                 <Label htmlFor="username" className="mb-2 block">Username</Label>
                 <Input
                   id="username"
                   placeholder="Enter your username"
-                  {...register("username", { 
+                  {...register("username", {
                     required: "Username is required",
                     minLength: {
                       value: 3,
@@ -84,14 +83,14 @@ const RegisterForm = () => {
                 )}
               </div>
 
-              {/* Email Field */}
+              {/* Email */}
               <div>
                 <Label htmlFor="email" className="mb-2 block">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="user@example.com"
-                  {...register("email", { 
+                  {...register("email", {
                     required: "Email is required",
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -107,7 +106,7 @@ const RegisterForm = () => {
                 )}
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div>
                 <Label htmlFor="password" className="mb-2 block">Password</Label>
                 <div className="relative">
@@ -115,7 +114,7 @@ const RegisterForm = () => {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    {...register("password", { 
+                    {...register("password", {
                       required: "Password is required",
                       minLength: {
                         value: 6,
@@ -129,11 +128,7 @@ const RegisterForm = () => {
                     onClick={() => togglePasswordVisibility('password')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
-                    {showPassword ? (
-                      <EyeClosedIcon className="h-5 w-5" />
-                    ) : (
-                      <EyeOpenIcon className="h-5 w-5" />
-                    )}
+                    {showPassword ? <EyeOpenIcon className="h-5 w-5" /> : <EyeClosedIcon className="h-5 w-5" />}
                   </button>
                 </div>
                 {errors.password && (
@@ -143,7 +138,7 @@ const RegisterForm = () => {
                 )}
               </div>
 
-              {/* Confirm Password Field */}
+              {/* Confirm Password */}
               <div>
                 <Label htmlFor="confirmPassword" className="mb-2 block">Confirm Password</Label>
                 <div className="relative">
@@ -151,10 +146,9 @@ const RegisterForm = () => {
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    {...register("confirmPassword", { 
+                    {...register("confirmPassword", {
                       required: "Please confirm your password",
-                      validate: (value) => 
-                        value === watch('password') || "Passwords do not match"
+                      validate: (value) => value === watch('password') || "Passwords do not match"
                     })}
                     className={`pr-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
                   />
@@ -163,11 +157,7 @@ const RegisterForm = () => {
                     onClick={() => togglePasswordVisibility('confirm')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
-                    {showConfirmPassword ? (
-                      <EyeClosedIcon className="h-5 w-5" />
-                    ) : (
-                      <EyeOpenIcon className="h-5 w-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOpenIcon className="h-5 w-5" /> : <EyeClosedIcon className="h-5 w-5" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
@@ -178,19 +168,13 @@ const RegisterForm = () => {
               </div>
             </div>
 
-            {/* Form Error */}
+            {/* Error */}
             {error && (
-              <div className="text-destructive text-sm">
-                {error}
-              </div>
+              <div className="text-destructive text-sm">{error}</div>
             )}
 
             {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
@@ -201,8 +185,9 @@ const RegisterForm = () => {
               )}
             </Button>
 
-            <div className="text-center text-sm text-gray-600">
-              Already have an account? 
+            {/* Login Link */}
+            <div className="text-center text-sm text-muted-foreground">
+              Already have an account?
               <Link to="/login" className="ml-1 text-primary hover:underline">Sign in</Link>
             </div>
           </form>

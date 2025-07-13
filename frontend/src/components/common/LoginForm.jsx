@@ -38,14 +38,14 @@ const LoginForm = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex justify-center items-center min-h-screen"
+      className="flex justify-center items-center min-h-screen px-4"
     >
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md sm:max-w-lg shadow-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Login to Your Account</CardTitle>
+          <CardTitle className="text-2xl text-center">Login to Your Account</CardTitle>
         </CardHeader>
 
         <CardContent>
@@ -97,10 +97,13 @@ const LoginForm = () => {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
                     {showPassword ? (
-                      <EyeClosedIcon className="h-5 w-5" />
-                    ) : (
                       <EyeOpenIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeClosedIcon className="h-5 w-5" />
                     )}
+
+                                      
+
                   </button>
                 </div>
                 {errors.password && (
@@ -133,8 +136,9 @@ const LoginForm = () => {
                 "Sign In"
               )}
             </Button>
+
             {/* Register Link */}
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground text-center">
               Don&apos;t have an account?{" "}
               <Link to="/register" className="text-primary hover:underline">
                 Register

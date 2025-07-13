@@ -34,7 +34,7 @@ import productRoutes from "./routes/product.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
-import couponRoutes from "./routes/coupon.routes.js";
+// import couponRoutes from "./routes/coupon.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 
 // routes
@@ -42,9 +42,9 @@ app.use("/api/v1/healthcheck", healthCheckRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/cart", cartRoutes);
-app.use("/api/v1/order", orderRoutes);
+app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
-app.use("/api/v1/coupons", couponRoutes);
+// app.use("/api/v1/coupons", couponRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 
 // Global Error Handler

@@ -30,7 +30,7 @@ const setCookies = (res, accessToken, refreshToken) => {
         httpOnly: true,
         sameSite: "lax", // More flexible than strict
         secure: process.env.NODE_ENV === "production",
-        maxAge:  60 * 1000
+        maxAge: 15 * 60 * 1000
     });
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,

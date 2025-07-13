@@ -1,43 +1,46 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { toast } from 'react-hot-toast'
+import { baseQueryWithReauth } from './customBaseQuery'
 
-// Custom baseQuery with refresh logic
-const baseQuery = fetchBaseQuery({
-    baseUrl: import.meta.env.MODE === "development"
-        ? "http://localhost:5000/api/v1"
-        : "/api/v1",
-    credentials: 'include',
-});
 
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-    let result = await baseQuery(args, api, extraOptions);
-
-    if (result.error && result.error.status === 401) {
-        // Try to refresh token
-        const refreshResult = await baseQuery(
-            { url: '/auth/refresh-token', method: 'POST' },
-            api,
-            extraOptions
-        );
-        if (refreshResult.data) {
-            // Retry original query
-            result = await baseQuery(args, api, extraOptions);
-        } else {
-            // Optionally: dispatch logout or show error
-        }
-    }
-    return result;
-};
 
 export const productsApi = createApi({
     reducerPath: 'productsApi',
     baseQuery: baseQueryWithReauth,
     tagTypes: ['Products'],
     endpoints: (builder) => ({
-        // ...your endpoints (no change needed here)
+        // ...your endpoints (no change needed here) 
         getAllProducts: builder.query({
+            query: () => 'products',
+            providesTags: ['Products'],
+        }),
+        getProducts: builder.query({
+            query: ({ gender, category, subCategory }) => {
+                if (gender && category && subCategory) {
+                    return `products/gender/${gender}/category/${category}/sub/${subCategory}`;
+                } else if (gender && category) {
+                    return `products/gender/${gender}/category/${category}`;
+                } else if (gender) {
+                    return `products/gender/${gender}`;
+                } else if (category && subCategory) {
+                    return `products/category/${category}/sub/${subCategory}`;
+                } else if (category) {
+                    return `products/category/${category}`;
+                } else {
+                    return `products`;
+                }
+            },
+        }),
+        recommendedProducts: builder.query({
             query: () => ({
-                url: '/products',
+                url: '/products/recommendations',
+                method: 'GET',
+            }),
+            providesTags: ['Products'],
+        }),
+        featuredProducts: builder.query({
+            query: () => ({
+                url: '/products/featured',
                 method: 'GET',
             }),
             providesTags: ['Products'],
@@ -47,16 +50,34 @@ export const productsApi = createApi({
                 url: '/products',
                 method: 'POST',
                 body: product,
-                'content-type': 'multipart/form-data',
+                formData: true,
             }),
-            invalidatesTags: ['Product'],
-            async onQueryStarted(arg, { queryFulfilled }) {
+            invalidatesTags: ['Products'],
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 const toastId = toast.loading('Adding product...');
+
+                // Optimistically add a fake product to the product list
+                const tempId = `temp-${Date.now()}`;
+                const patchResult = dispatch(
+                    productsApi.util.updateQueryData('getAllProducts', undefined, (draft) => {
+                        if (Array.isArray(draft?.data)) {
+                            draft.data.push({
+                                _id: tempId,
+                                ...arg,
+                                price: Number(arg.get('price')),
+                                countInStock: Number(arg.get('countInStock')),
+                                isFeatured: false,
+                                createdAt: new Date().toISOString(),
+                            });
+                        }
+                    })
+                );
                 try {
                     await queryFulfilled;
                     toast.success('Product added successfully!', { id: toastId });
-                } catch (err) {
+                } catch {
                     toast.error('Failed to add product', { id: toastId });
+                    patchResult.undo();
                 }
             },
         }),
@@ -65,14 +86,22 @@ export const productsApi = createApi({
                 url: `/products/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Product'],
-            async onQueryStarted(arg, { queryFulfilled }) {
-                const toastId = toast.loading('Deleting product...');
+            invalidatesTags: ['Products'],
+            async onQueryStarted(id, { dispatch, queryFulfilled }) {
+                const toastId = toast.loading("Deleting product...");
+
+                const patchResult = dispatch(
+                    productsApi.util.updateQueryData('getAllProducts', undefined, (draft) => {
+                        return draft.filter((product) => product._id !== id);
+                    })
+                );
+
                 try {
                     await queryFulfilled;
-                    toast.success('Product deleted successfully!', { id: toastId });
+                    toast.success("Product deleted successfully!", { id: toastId });
                 } catch (err) {
-                    toast.error('Failed to delete product', { id: toastId });
+                    toast.error("Failed to delete product", { id: toastId });
+                    patchResult.undo();
                 }
             }
         }),
@@ -81,17 +110,50 @@ export const productsApi = createApi({
                 url: `/products/${id}`,
                 method: 'PATCH',
             }),
-            invalidatesTags: ['Product'],
-            async onQueryStarted(arg, { queryFulfilled }) {
-                const toastId = toast.loading('Toggling product...');
-                try {
-                    await queryFulfilled;
-                    toast.success('Product toggled successfully!', { id: toastId });
-                } catch (err) {
-                    toast.error('Failed to toggle product', { id: toastId });
-                }
-            }
-        })
+            invalidatesTags: ['Products'],
+        }),
+        getProductById: builder.query({
+            query: (id) => `/products/${id}`,
+            providesTags: (result, error, id) => [
+                { type: 'Products' },
+                { type: 'Product', id },
+                { type: 'Review', id },
+            ],
+        }),
+        addReview: builder.mutation({
+            query: ({ productId, reviewData }) => ({
+                url: `/products/${productId}/add-review`,
+                method: 'POST',
+                body: reviewData,
+            }),
+            invalidatesTags: (result, error, { productId }) => [
+                { type: 'Product', id: productId },
+                { type: 'Review', id: productId },
+            ],
+        }),
+
+        editReview: builder.mutation({
+            query: ({ productId, reviewData }) => ({
+                url: `/products/${productId}/edit-review`, // ✅ fixed here
+                method: 'PUT',
+                body: reviewData,
+            }),
+            invalidatesTags: (result, error, { productId }) => [
+                { type: 'Product', id: productId },
+                { type: 'Review', id: productId },
+            ],
+        }),
+
+        deleteReview: builder.mutation({
+            query: (productId) => ({
+                url: `/products/${productId}/delete-review`, // ✅ fixed here
+                method: 'DELETE',
+            }),
+            invalidatesTags: (result, error, productId) => [
+                { type: 'Product', id: productId },
+                { type: 'Review', id: productId },
+            ],
+        }),
 
     }),
 })
@@ -99,9 +161,16 @@ export const productsApi = createApi({
 
 export const {
     useGetAllProductsQuery,
+    useGetProductsQuery,
+    useRecommendedProductsQuery,
+    useFeaturedProductsQuery,
     useCreateProductsMutation,
     useDeleteProductMutation,
-    useToggleFeaturedProductMutation
+    useToggleFeaturedProductMutation,
+    useGetProductByIdQuery,
+    useAddReviewMutation,
+    useEditReviewMutation,
+    useDeleteReviewMutation
 } = productsApi
 
 

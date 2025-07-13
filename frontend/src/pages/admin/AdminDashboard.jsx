@@ -1,4 +1,4 @@
-import Sidebar from '../../components/common/admin/Sidebar'
+import Sidebar from '../../components/admin/Sidebar';
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
 

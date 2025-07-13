@@ -1,13 +1,9 @@
-import { createApi,fetchBaseQuery  } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { baseQueryWithReauth } from './customBaseQuery'
 
 export const analyticsApi = createApi({
     reducerPath: 'analyticsApi',
-    baseQuery: fetchBaseQuery({
-        baseUrl: import.meta.env.MODE === "development"
-        ? "http://localhost:5000/api/v1"
-        : "/api/v1",
-        credentials: 'include',
-    }),
+    baseQuery: baseQueryWithReauth,
     tagTypes: ['Analytics'],
     endpoints: (builder) => ({
         getAnalytics: builder.query({

@@ -12,19 +12,28 @@ const getCartItems = asyncHandler(async (req, res) => {
         return res.status(401).json(new ApiError(401, [], "User not authenticated"));
     }
 
-    const cart = await Cart.findOne({ user: userId })
-        .populate("cartItems.product"); // Load full product (incl. virtuals)
+    const cart = await Cart.findOne({ user: userId }).populate("cartItems.product");
 
     if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
-        return res.status(404).json(new ApiError(404, [], "Cart is empty"));
+        return res.status(200).json(new ApiResponse(200, [], "Cart is empty"));
     }
 
-    const cartItems = cart.cartItems.map((item) => {
+
+    // Filter out cart items whose product has been deleted (i.e., product === null)
+    const validItems = cart.cartItems.filter(item => item.product !== null);
+
+    // If all products are invalid (e.g., deleted), treat cart as empty
+    if (validItems.length === 0) {
+        return res.status(404).json(new ApiError(404, [], "Cart contains no valid products"));
+    }
+
+    const cartItems = validItems.map((item) => {
         const product = item.product;
 
         return {
             _id: item._id,
             quantity: item.quantity,
+            size: item.size,
             totalPrice: item.quantity * product.price,
             product: {
                 _id: product._id,
@@ -37,55 +46,60 @@ const getCartItems = asyncHandler(async (req, res) => {
             }
         };
     });
+
     res.status(200).json(new ApiResponse(200, cartItems, "Cart items retrieved successfully"));
 });
 
+
+
+
 const addToCart = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
-    const { productId, quantity } = req.body;
+    const { productId, quantity, size } = req.body;
 
-    if (!productId) {
-        throw new ApiError(400, "Product ID is required");
-    }
+    if (!productId) throw new ApiError(400, "Product ID is required");
 
     const qty = quantity && Number(quantity) > 0 ? Number(quantity) : 1;
+    const selectedSize = size || "M"; // default to M
 
-    const product = await Product.findById(productId);
-    if (!product) {
-        throw new ApiError(404, "Product not found");
+    if (!["S", "M", "L", "XL"].includes(selectedSize)) {
+        throw new ApiError(400, "Invalid size selected");
     }
 
+    const product = await Product.findById(productId);
+    if (!product) throw new ApiError(404, "Product not found");
+
     if (qty > product.countInStock) {
-        throw new ApiError(400, `Only ${product.countInStock} units available in stock`);
+        throw new ApiError(400, `Only ${product.countInStock} units available`);
     }
 
     let cart = await Cart.findOne({ user: userId });
 
     if (!cart) {
-        // 🆕 Create new cart
         cart = await Cart.create({
             user: userId,
-            cartItems: [{ product: productId, quantity: qty }]
+            cartItems: [{ product: productId, quantity: qty, size: selectedSize }]
         });
     } else {
-        // 🔁 Check if product already in cart
         const existingItem = cart.cartItems.find(
-            (item) => item.product.toString() === productId
+            (item) =>
+                item.product.toString() === productId &&
+                item.size === selectedSize
         );
 
         if (existingItem) {
-            const newQuantity = existingItem.quantity + qty;
+            const newQty = existingItem.quantity + qty;
 
-            if (newQuantity > product.countInStock) {
+            if (newQty > product.countInStock) {
                 throw new ApiError(
                     400,
-                    `Cannot add ${qty} more. Only ${product.countInStock - existingItem.quantity} units left.`
+                    `Only ${product.countInStock - existingItem.quantity} units left for size ${selectedSize}`
                 );
             }
 
-            existingItem.quantity = newQuantity;
+            existingItem.quantity = newQty;
         } else {
-            cart.cartItems.push({ product: productId, quantity: qty });
+            cart.cartItems.push({ product: productId, quantity: qty, size: selectedSize });
         }
 
         await cart.save();
@@ -94,29 +108,38 @@ const addToCart = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, cart, "Product added to cart"));
 });
 
+
 const removeCartItem = asyncHandler(async (req, res) => {
     const { productId } = req.params;
+    const { size } = req.body;
     const userId = req.user?._id;
-    if (!productId) throw new ApiError(400, "Product ID is required");
+
+    if (!productId || !size) {
+        throw new ApiError(400, "Product ID and size are required");
+    }
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) throw new ApiError(404, "Cart not found");
 
     const itemIndex = cart.cartItems.findIndex(
-        (item) => item.product.toString() === productId
+        (item) => item.product.toString() === productId && item.size === size
     );
-    if (itemIndex === -1) throw new ApiError(404, "Product not found in cart");
+
+    if (itemIndex === -1) {
+        return res.status(200).json(new ApiResponse(200, [], "Item already removed"));
+    }
 
     cart.cartItems.splice(itemIndex, 1);
+
     if (cart.cartItems.length === 0) {
-        // If cart is empty, remove the cart document
         await Cart.deleteOne({ _id: cart._id });
         return res.status(200).json(new ApiResponse(200, [], "Cart is now empty"));
     }
-    await cart.save();
 
+    await cart.save();
     res.status(200).json(new ApiResponse(200, cart, "Product removed from cart"));
 });
+
 
 const updateCartItemQuantity = asyncHandler(async (req, res) => {
     const { productId } = req.params;
@@ -150,12 +173,18 @@ const updateCartItemQuantity = asyncHandler(async (req, res) => {
         (item) => item.product.toString() === productId
     );
 
+    //&& item.size === size
+
     if (!cartItem) {
         throw new ApiError(404, "Product not found in cart");
     }
 
     cartItem.quantity = qty;
     await cart.save();
+
+    if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
+        return res.status(200).json(new ApiResponse(200, [], "Cart is empty"));
+    }
 
     res.status(200).json(
         new ApiResponse(200, cart, "Cart item quantity updated successfully")
@@ -165,15 +194,20 @@ const updateCartItemQuantity = asyncHandler(async (req, res) => {
 const clearCart = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
 
+    if (!userId) {
+        throw new ApiError(401, "User not authenticated");
+    }
+
     const cart = await Cart.findOne({ user: userId });
-    if (!cart) {
-        throw new ApiError(404, "Cart not found");
+
+    if (!cart || cart.cartItems.length === 0) {
+        return res.status(200).json(new ApiResponse(200, [], "Cart already empty"));
     }
 
     cart.cartItems = [];
     await cart.save();
 
-    res.status(200).json(new ApiResponse(200, cart, "Cart cleared successfully"));
+    res.status(200).json(new ApiResponse(200, [], "Cart cleared successfully"));
 });
 
 export {

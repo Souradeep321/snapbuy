@@ -1,16 +1,17 @@
 // src/components/Sidebar.jsx
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, ShoppingCart, Package, Users, PackagePlus, BarChart, Percent, LifeBuoy, Settings } from "lucide-react";
+import { Home, ShoppingCart, Package, Bell, PackagePlus, BarChart, Percent, LifeBuoy, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
-import { logout } from "../../../store/userReducer";
+import { logout } from "../../store/userReducer";
 
 const sidebarLinks = [
   { name: "Dashboard", to: "/admin", icon: <Home className="w-5 h-5" /> },
   { name: "Create", to: "/admin/create", icon: <PackagePlus className="w-5 h-5" /> },
   { name: "Products", to: "/admin/products", icon: <Package className="w-5 h-5" /> },
   { name: "Orders", to: "/admin/orders", icon: <ShoppingCart className="w-5 h-5" /> },
+  { name: "Notifications", to: "/admin/notifications", icon: <Bell className="w-5 h-5" /> },
   // { name: "Customers", to: "/admin/customers", icon: <Users className="w-5 h-5" /> },
   // { name: "Reports", to: "/admin/reports", icon: <BarChart className="w-5 h-5" /> },
   // { name: "Discounts", to: "/admin/discounts", icon: <Percent className="w-5 h-5" /> },
@@ -50,13 +51,13 @@ export default function Sidebar() {
 
       <div className="mt-auto px-4">
         <Button variant="outline" className="w-full"
-          onClick={(e) => {
-            e.preventDefault()
+          onClick={async (e) => {
+            e.preventDefault();
             try {
-              dispatch(logout())
-              navigate("/login")
+              await dispatch(logout()).unwrap(); 
+              navigate('/login');
             } catch (error) {
-              toast.error(error.message)
+              toast.error(error?.message || 'Logout failed');
             }
           }}
         >

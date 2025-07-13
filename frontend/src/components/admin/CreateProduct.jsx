@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCreateProductsMutation } from '../../../store/productApi';
+import { useCreateProductsMutation } from '../../store/productApi';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
@@ -41,8 +41,8 @@ const CreateProduct = () => {
   };
 
   const genders = [
-    { value: 'male', label: 'Men' },
-    { value: 'female', label: 'Women' },
+    { value: 'mens', label: 'Men' },
+    { value: 'womens', label: 'Women' },
     { value: 'unisex', label: 'Unisex' },
   ];
 

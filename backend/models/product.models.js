@@ -16,7 +16,7 @@ const productSchema = new Schema({
     },
     gender: {
         type: String,
-        enum: ["male", "female", "unisex"],
+        enum: ["mens", "womens", "unisex"],
         default: "unisex"
     },
     category: {
