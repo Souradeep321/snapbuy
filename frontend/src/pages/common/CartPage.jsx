@@ -1,6 +1,6 @@
 import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {  Trash2, ShoppingBag } from 'lucide-react';
+import { Trash2, ShoppingBag } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useRemoveCartItemMutation, useUpdateCartItemQuantityMutation } from '../../store/cartApi';
 import { toast } from "react-hot-toast"
@@ -103,18 +103,24 @@ const CartPage = ({ cartItems, isLoading, error }) => {
                 <p className="text-sm text-gray-500">Category: {product.subCategory}</p>
                 <p className="text-sm text-gray-500">Size: {size}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <Button size="icon"
+                  <Button
+                    size="icon"
                     variant="outline"
                     onClick={() => handleUpdateQuantity(product._id, quantity - 1, size)}
-                    className="cursor-pointer"
-                  >-</Button>
+                    disabled={updateQuantityLoading}
+                  >
+                    -
+                  </Button>
+
                   <span className="text-sm">{quantity}</span>
                   <Button
                     size="icon"
                     variant="outline"
                     onClick={() => handleUpdateQuantity(product._id, quantity + 1, size)}
-                    className="cursor-pointer"
-                  >+</Button>
+                    disabled={updateQuantityLoading}
+                  >
+                    +
+                  </Button>
                 </div>
               </div>
               <div className="text-right flex flex-col gap-12">

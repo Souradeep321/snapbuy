@@ -143,11 +143,11 @@ const removeCartItem = asyncHandler(async (req, res) => {
 
 const updateCartItemQuantity = asyncHandler(async (req, res) => {
     const { productId } = req.params;
-    const { quantity } = req.body;
+    const { quantity, size } = req.body;
     const userId = req.user?._id;
 
-    if (!productId || quantity === undefined) {
-        throw new ApiError(400, "Product ID and quantity are required");
+    if (!productId || quantity === undefined || !size) {
+        throw new ApiError(400, "Product ID, size, and quantity are required");
     }
 
     const qty = Number(quantity);
@@ -169,20 +169,21 @@ const updateCartItemQuantity = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Cart not found");
     }
 
+    // Match both product ID and size
     const cartItem = cart.cartItems.find(
-        (item) => item.product.toString() === productId
+        (item) =>
+            item.product.toString() === productId &&
+            item.size === size
     );
 
-    //&& item.size === size
-
     if (!cartItem) {
-        throw new ApiError(404, "Product not found in cart");
+        throw new ApiError(404, "Product with selected size not found in cart");
     }
 
     cartItem.quantity = qty;
     await cart.save();
 
-    if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
+    if (!cart.cartItems.length) {
         return res.status(200).json(new ApiResponse(200, [], "Cart is empty"));
     }
 

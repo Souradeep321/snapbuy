@@ -56,11 +56,11 @@ export const cartApi = createApi({
 
         }),
         updateCartItemQuantity: builder.mutation({
-            query: ({ productId, quantity }) => {
+            query: ({ productId, quantity ,size}) => {
                 return {
                     url: `/cart/${productId}`,
                     method: 'PATCH',
-                    body: { quantity },
+                    body: { quantity , size},
                 }
             },
             invalidatesTags: ['Cart'],

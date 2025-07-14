@@ -144,7 +144,7 @@ function AppRoutes() {
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
 
-            {!location.pathname.startsWith("/admin") && !location.pathname.startsWith("/cart") && !location.pathname.startsWith("/checkout") && !location.pathname.startsWith("/profile") && !location.pathname.startsWith("/login") && !location.pathname.startsWith("/register") && <Footer />}
+            {!location.pathname.startsWith("/admin") && !location.pathname.startsWith("/cart") && !location.pathname.startsWith("/checkout") && !location.pathname.startsWith("/profile") && !location.pathname.startsWith("/login") && !location.pathname.startsWith("/register") && !location.pathname.startsWith("/purchase-success") && <Footer />}
         </>
     );
 }
