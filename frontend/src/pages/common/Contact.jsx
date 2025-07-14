@@ -7,20 +7,20 @@ export default function Contact() {
     {
       title: "Chat to sales",
       description: "Speak to our friendly team.",
-      email: "sales@snapbuy.com",
+      email: "souradeephazra93@gmail.com",
       icon: <MessageSquareText className="w-6 h-6 text-primary" />,
     },
     {
       title: "Chat to support",
       description: "We’re here to help.",
-      email: "support@snapbuy.com",
+      email: "souradeephazra93@gmail.com",
       icon: <Mail className="w-6 h-6 text-primary" />,
     },
     {
       title: "Visit us",
       description: "Visit our office HQ.",
       email: "View on Google Maps",
-      link: "https://maps.google.com", // replace with actual link
+      link: "https://maps.app.goo.gl/B9Dq6ucDSEWbGaV39", // replace with actual link
       icon: <MapPin className="w-6 h-6 text-primary" />,
     },
     {
