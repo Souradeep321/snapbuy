@@ -42,7 +42,7 @@ import notificationRoutes from "./routes/notification.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 
 // routes
-app.use("/api/v1/healthcheck", healthCheckRoutes);
+// app.use("/api/v1/healthcheck", healthCheckRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/cart", cartRoutes);
