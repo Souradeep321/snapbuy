@@ -50,22 +50,14 @@ const Footer = () => {
 
                     {/* Links */}
                     <div className="flex flex-wrap justify-between gap-6">
-                        <div>
+                        <div className="flex flex-col gap-1">
                             <h3
-                                onClick={() => navigate('/collection')}
                                 className="font-bold text-black mb-2 cursor-pointer">
-                                Products
+                                Help & Legal
                             </h3>
-                            <p
-                                onClick={() => navigate('/collection')}
-                                className="hover:underline cursor-pointer">
-                                All Products
-                            </p>
-                            <p
-                                onClick={() => navigate('/about')}
-                                className="hover:underline cursor-pointer">
-                                Latest News
-                            </p>
+                            <Link to="/shipping-policy" className="hover:underline">Shipping Policy</Link>
+                            <Link to="/terms" className="hover:underline">Terms & Conditions</Link>
+                            <Link to="/refund-policy" className="hover:underline">Refund Policy</Link>
                         </div>
                         <div className="flex flex-col gap-1">
                             <h3 className="font-bold text-black mb-2">Social</h3>
@@ -95,7 +87,7 @@ const Footer = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 mt-10 border-t pt-6">
                     <p>© 2025 All Rights Reserved</p>
                     <div className="flex gap-4 mt-2 md:mt-0">
-                        <Link to={"#"} className="hover:underline">Privacy Policy</Link>
+                        <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
                     </div>
                 </div>
             </div>

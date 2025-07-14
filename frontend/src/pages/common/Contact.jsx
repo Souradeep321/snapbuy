@@ -1,5 +1,6 @@
 import { Mail, MessageSquareText, MapPin, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 export default function Contact() {
   const contacts = [
@@ -25,14 +26,18 @@ export default function Contact() {
     {
       title: "Call us",
       description: "Mon–Fri from 8am to 5pm.",
-      email: "+1 (555) 000-0000",
+      email: "8017295229",
       tel: true,
       icon: <Phone className="w-6 h-6 text-primary" />,
     },
   ];
 
   return (
-    <div className="min-h-screen pt-24 px-4 bg-white text-center">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen pt-24 px-4 bg-white text-center">
       {/* Header */}
       <div className="max-w-2xl mx-auto mb-12">
         <div className="flex justify-center mb-4">
@@ -69,6 +74,6 @@ export default function Contact() {
           </Card>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

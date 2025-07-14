@@ -32,6 +32,10 @@ import Orders from "./components/admin/Orders";
 import Settings from "./pages/common/Settings";
 import SearchPage from "./pages/common/SearchPage";
 import Footer from "./components/common/Footer";
+import PrivacyPolicy from "./pages/common/PrivacyPolicy ";
+import ShippingPolicy from "./pages/common/ShippingPolicy ";
+import TermsAndConditions from "./pages/common/TermsAndConditions ";
+import RefundPolicy from "./pages/common/RefundPolicy ";
 
 function AppRoutes() {
     const location = useLocation();
@@ -93,9 +97,6 @@ function AppRoutes() {
                 <Route path="/collection/:category" element={<ProductListingPageWrapper />} />
                 <Route path="/collection/:category/:subCategory" element={<ProductListingPageWrapper />} />
 
-
-
-                {/* Protected Routes */}
                 {/* Protected Routes */}
                 <Route
                     path="/profile"
@@ -108,8 +109,7 @@ function AppRoutes() {
                     <Route path="notifications" element={<Notifications />} />
                 </Route>
 
-
-
+                {/* auth */}
                 <Route
                     path="/login"
                     element={!isAuthenticated ? <Login /> : <Navigate to="/" replace />}
@@ -118,8 +118,7 @@ function AppRoutes() {
                     path="/register"
                     element={!isAuthenticated ? <Register /> : <Navigate to="/" replace />}
                 />
-
-
+                {/* admin dashboard */}
                 <Route
                     path="/admin"
                     element={
@@ -136,9 +135,15 @@ function AppRoutes() {
                     <Route path="notifications" element={<Notifications />} />
                 </Route>
 
-
                 {/* customer success page */}
                 <Route path="/purchase-success/:orderId" element={user ? <PurchaseSuccess /> : <Navigate to="/login" state={{ from: location }} replace />} />
+
+
+                {/* Add to your routes inside App */}
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/shipping-policy" element={<ShippingPolicy />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/refund-policy" element={<RefundPolicy />} />
 
 
                 <Route path="*" element={<Navigate to="/" replace />} />
