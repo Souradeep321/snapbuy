@@ -11,8 +11,6 @@ import Loader from "./components/common/Loader";
 
 import { Toaster } from "react-hot-toast";
 import { getProfile } from "./store/userReducer";
-// import Womens from "./pages/common/Womens";
-// import Mens from "./pages/common/Mens";
 import Collection from "./pages/common/Collection";
 import CartPage from "./pages/common/CartPage";
 import Profile from "./pages/common/Profile";

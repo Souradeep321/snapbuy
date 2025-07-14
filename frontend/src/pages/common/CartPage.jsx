@@ -1,8 +1,6 @@
 import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Truck, Phone, MessageCircle, Gift, Trash2, ShoppingBag } from 'lucide-react';
+import {  Trash2, ShoppingBag } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useRemoveCartItemMutation, useUpdateCartItemQuantityMutation } from '../../store/cartApi';
 import { toast } from "react-hot-toast"
@@ -11,15 +9,12 @@ import Loader from '../../components/common/Loader';
 
 const CartPage = ({ cartItems, isLoading, error }) => {
   const navigate = useNavigate();
-  const [showCoupon, setShowCoupon] = useState(false);
   const [discountedTotal, setDiscountedTotal] = useState(null);
 
   const [updateCartQuantity, { isLoading: updateQuantityLoading }] = useUpdateCartItemQuantityMutation();
   const [removeCartItem, { isLoading: removeCartItemLoading }] = useRemoveCartItemMutation();
-  // const { data, isLoading: couponLoading } = useGetMyCouponQuery();
   const { user, isAuthenticated } = useSelector(state => state.auth);
 
-  // const coupon = data?.data || {};
 
   const total = (cartItems ?? []).reduce((sum, item) => sum + item.totalPrice, 0);
 
@@ -101,6 +96,7 @@ const CartPage = ({ cartItems, isLoading, error }) => {
                 src={product.coverImage}
                 alt={product.name}
                 className="w-24 h-24 object-cover rounded-md"
+                onClick={() => navigate(`/product/${product._id}`)}
               />
               <div className="flex-1">
                 <h4 className="text-md font-semibold">{product.name}</h4>
@@ -160,44 +156,6 @@ const CartPage = ({ cartItems, isLoading, error }) => {
 
         </div>
       </div>
-
-      {/* Gift Cards & Info */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-10 ">
-        <Card className="flex items-center gap-3 p-4 bg-pink-100">
-          <Truck className="text-pink-600" />
-          <CardContent className="p-0">
-            <p className="font-semibold text-sm">Free Shipping</p>
-            <p className="text-xs text-gray-500">When you spend $50+</p>
-          </CardContent>
-        </Card>
-
-        <Card className="flex items-center gap-3 p-4 bg-orange-100">
-          <Phone className="text-orange-600" />
-          <CardContent className="p-0">
-            <p className="font-semibold text-sm">Call Us Anytime</p>
-            <p className="text-xs text-gray-500">+34 555 5555</p>
-          </CardContent>
-        </Card>
-
-        <Card className="flex items-center gap-3 p-4 bg-green-100">
-          <MessageCircle className="text-green-600" />
-          <CardContent className="p-0">
-            <p className="font-semibold text-sm">Chat With Us</p>
-            <p className="text-xs text-gray-500">We offer 24-hour chat support</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="flex items-center gap-3 p-4 bg-yellow-100 cursor-pointer"
-          onClick={() => setShowCoupon(!showCoupon)}
-        >
-          <Gift className="text-yellow-600" />
-          <CardContent className="p-0">
-            <p className="font-semibold text-sm">Gift Cards</p>
-            <p className="text-xs text-gray-500">For your loved one, in any amount</p>
-          </CardContent>
-        </Card>
-      </div> */}
     </div>
   );
 };

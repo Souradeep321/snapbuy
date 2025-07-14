@@ -10,6 +10,7 @@ const FinalHeroSection = ({ img }) => {
         src={img}
         alt="Hero Elegance"
         className="absolute inset-0 w-full h-full object-cover"
+        loading="lazy"
       />
       <div className="relative z-10 flex flex-col justify-center h-full text-white bg-gradient-to-r from-black/40 to-transparent p-6 md:p-12 max-w-2xl">
         <h2 className="text-4xl font-semibold">Effortless Elegance</h2>

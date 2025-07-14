@@ -127,7 +127,7 @@ const Checkout = () => {
 
             toast.success('Order placed successfully!');
             await clarcart().unwrap();// Clear cart after successful order
-            await refetchCartItems();   
+            await refetchCartItems();
             console.log('Cart cleared after order');
             navigate(`/purchase-success/${res?.data?.data?._id}`);
           } catch (err) {

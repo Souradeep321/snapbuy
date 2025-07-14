@@ -1,5 +1,5 @@
 import { Truck, ShieldCheck, Smile } from 'lucide-react'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import  men1  from "../../assets/men/men1.webp";
 

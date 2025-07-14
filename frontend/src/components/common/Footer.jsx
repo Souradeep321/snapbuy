@@ -4,7 +4,7 @@ const Footer = () => {
     const navigate = useNavigate();
 
     return (
-        <footer className="bg-gray-100 border-t border-gray-200 px-6 md:px-20 py-12 text-sm text-gray-700 w-full">
+        <footer className="bg-gray-50 border-t border-gray-200 px-6 md:px-20 py-12 text-sm text-gray-700 w-full">
             <div className="max-w-7xl mx-auto space-y-12">
                 {/* Newsletter Section */}
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-6 md:space-y-0">
