@@ -108,52 +108,6 @@ const logout = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Logout successful"));
 });
 
-// const refreshAccessToken = asyncHandler(async (req, res) => {
-//     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
-
-//     if (!incomingRefreshToken) {
-//         throw new ApiError(401, "Refresh token is required")
-//     }
-
-//     try {
-//         const decodedToken = jwt.verify(
-//             incomingRefreshToken,
-//             process.env.REFRESH_TOKEN_SECRET,
-//         );
-//         const user = await User.findById(decodedToken?._id)
-
-//         if (!user) {
-//             throw new ApiError(401, "Invalid refresh token")
-//         }
-
-//         if (incomingRefreshToken !== user?.refreshToken) {
-//             throw new ApiError(401, "Invalid refresh token")
-//         }
-
-//         const options = {
-//             httpOnly: true,
-//             sameSite: "strict",
-//             secure: process.env.NODE_ENV === "production",
-//         }
-
-//         const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshToken(user._id)
-
-//         return res
-//             .status(200)
-//             .cookie("accessToken", accessToken, options)
-//             .cookie("refreshToken", newRefreshToken, options)
-//             .json(new ApiResponse(
-//                 200,
-//                 {
-//                     accessToken,
-//                     refreshToken: newRefreshToken
-//                 },
-//                 "Access token generated successfully"
-//             ));
-//     } catch (error) {
-//         throw new ApiError(500, "Something went wrong while refreshing the access token")
-//     }
-// })
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
@@ -222,7 +176,7 @@ const avatarUpload = asyncHandler(async (req, res) => {
     if (!avatar?.url || !avatar?.public_id)
         throw new ApiError(500, "Failed to upload avatar image");
 
-    const user = await User.findById(req.user?._id);
+    const user = await User.findById(req.user?._id).select("-password -refreshToken");
     if (!user) throw new ApiError(404, "User not found");
 
     // Delete old image from Cloudinary if exists
