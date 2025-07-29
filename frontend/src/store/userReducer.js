@@ -108,12 +108,7 @@ const userSlice = createSlice({
     name: "user",
     initialState,
     reducers: {
-        // Add action to clear auth state
-        // clearAuth: (state) => {
-        //     state.user = null;
-        //     state.isAuthenticated = false;
-        //     state.error = null;
-        // }
+   
     },
     extraReducers: (builder) => {
         builder
